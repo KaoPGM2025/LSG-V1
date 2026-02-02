@@ -143,7 +143,7 @@
          <p class="text-purple-100 text-sm">บันทึกและติดตามรายได้ของคุณ</p>
         </div>
         <div class="emoji-icon">
-         
+         ���
         </div>
        </div>
        <div class="grid grid-cols-3 gap-3 mt-4">
@@ -174,7 +174,7 @@
         </div>
         <div><label class="block text-sm font-medium text-gray-700 mb-2">หมายเหตุ (ไม่บังคับ)</label> <input type="text" id="note" placeholder="รายละเอียดเพิ่มเติม..." class="input-field w-full px-4 py-3 rounded-xl outline-none">
         </div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-2">วันที่</label> <input type="date" id="date" required class="input-field w-full px-4 py-3 rounded-xl outline-none">
+        <div><label class="block text-sm font-medium text-gray-700 mb-2">��ันที่</label> <input type="date" id="date" required class="input-field w-full px-4 py-3 rounded-xl outline-none">
         </div><button type="submit" class="btn-primary w-full py-4 rounded-xl text-white font-semibold text-lg flex items-center justify-center gap-2"> <span>💾</span> บันทึกรายได้ </button>
        </form>
       </div>
@@ -191,7 +191,7 @@
          <div class="text-4xl mb-2">
           📝
          </div>
-         <p>ยังไม่มีรายการ</p>
+         <p>ยังไม่ม���รายการ</p>
          <p class="text-sm">เริ่มบันทึกรายได้ของคุณเลย!</p>
         </div>
        </div>
@@ -204,7 +204,7 @@
       <p class="text-gray-600">ดูสถิติรายได้ของคุณ</p>
      </div>
      <div class="stat-card p-6 mb-6">
-      <h2 class="text-lg font-semibold text-gray-800 mb-4">รายได้รายวัน (7 วันที่ผ่านมา)</h2>
+      <h2 class="text-lg font-semibold text-gray-800 mb-4">รายได้รายวั��� (7 วันที่ผ่านมา)</h2>
       <div class="chart-container">
        <canvas id="dailyChart"></canvas>
       </div>
@@ -232,14 +232,14 @@
      <div class="stat-card p-6 mb-6">
       <h2 class="text-lg font-semibold text-gray-800 mb-4">การตั้งค่าทั่วไป</h2>
       <div class="space-y-4">
-       <div><label class="block text-sm font-medium text-gray-700 mb-2">ชื่อแอปพลิเคชัน</label> <input type="text" id="settings-app-title" class="input-field w-full px-4 py-3 rounded-xl outline-none">
+       <div><label class="block text-sm font-medium text-gray-700 mb-2">��ื่อแอปพลิเคชัน</label> <input type="text" id="settings-app-title" class="input-field w-full px-4 py-3 rounded-xl outline-none">
        </div><button class="btn-primary px-6 py-2 rounded-xl text-white font-semibold" id="save-settings"> 💾 บันทึกการตั้งค่า </button>
       </div>
      </div>
      <div class="stat-card p-6 mb-6">
       <h2 class="text-lg font-semibold text-gray-800 mb-4 text-red-600">⚠️ อันตราย</h2>
-      <div class="space-y-3"><button class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2" id="clear-all"> 🗑️ ลบข้อมูลทั้งหมด </button>
-       <p class="text-sm text-gray-500">การดำเนินการนี้ไม่สามารถยกเลิกได้</p>
+      <div class="space-y-3"><button class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 rounded-xl transition flex items-center justify-center gap-2" id="clear-all"> 🗑️ ลบข��อมูลทั้งหมด </button>
+       <p class="text-sm text-gray-500">���ารดำเนินการนี้ไม่สามารถยกเลิกได้</p>
       </div>
      </div>
     </div>
@@ -394,6 +394,7 @@
       
       incomeHistory.forEach(item => {
         const itemDate = new Date(item.date);
+        itemDate.setHours(0, 0, 0, 0);
         const amount = parseFloat(item.amount);
         
         if (itemDate >= today) todayTotal += amount;
@@ -489,7 +490,7 @@
         data: {
           labels: last7Days,
           datasets: [{
-            label: 'รายได้ (บาท)',
+            label: 'ราย��ด้ (บาท)',
             data: data,
             backgroundColor: 'rgba(102, 126, 234, 0.6)',
             borderColor: '#667eea',
@@ -656,7 +657,7 @@
       }
       
       Swal.fire({
-        title: 'กำลังบันทึก...',
+        title: 'กำลังบัน���ึก...',
         html: `
           <div class="flex flex-col items-center">
             <div class="text-5xl mb-4">💾</div>
@@ -718,7 +719,7 @@
           title: 'บันทึกในเครื่องแล้ว',
           html: `
             <div class="text-center">
-              <p class="text-gray-600 mb-2">ข้อมูลถูกบันทึกในเครื่องเรียบร้อย</p>
+              <p class="text-gray-600 mb-2">ข้อมูลถูกบันทึกในเครื่องเรีย��ร้อย</p>
               <p class="text-sm text-orange-500">⚠️ การส่งไป Google Sheets อาจไม่สำเร็จ</p>
             </div>
           `,
@@ -828,5 +829,5 @@
     calculateTotals();
     renderHistory();
   </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7a56fca3d24f58',t:'MTc3MDA0MjEzOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7a948611184f51',t:'MTc3MDA0NDY1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>

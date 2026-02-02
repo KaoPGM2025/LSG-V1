@@ -3,38 +3,1067 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ระบบบันทึกรายได้ V.2.1</title>
+  <title>Income Tracker Pro V.3.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="/_sdk/data_sdk.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
   <style>
     body {
       box-sizing: border-box;
-      font-family: 'Sarabun', sans-serif;
+      font-family: 'Prompt', sans-serif;
     }
-    
-    html, body {
-      height: 100%;
-      width: 100%;
+    .tab-active {
+      color: #10b981;
+      border-bottom: 3px solid #10b981;
+      background: linear-gradient(to top, rgba(16, 185, 129, 0.1), transparent);
     }
-    
+    .category-btn.selected {
+      transform: scale(1.05);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.5);
+    }
     .income-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 20px;
-      box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+      animation: slideIn 0.3s ease-out;
     }
-    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .stat-card {
       backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
-    
-    .stat-card:hover {
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white">
+  <div id="app" class="h-full flex flex-col overflow-hidden"><!-- Header -->
+   <header class="bg-slate-800/80 backdrop-blur-lg border-b border-slate-700 px-4 py-3 flex-shrink-0">
+    <div class="flex items-center justify-between max-w-lg mx-auto">
+     <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+       <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+       </svg>
+      </div>
+      <div>
+       <h1 id="app-title" class="text-lg font-bold text-white">Income Tracker Pro</h1>
+       <p class="text-xs text-slate-400">V.3.0 • ระบบบันทึกรายได้</p>
+      </div>
+     </div>
+     <div class="flex items-center gap-3"><button type="button" id="system-toggle" class="relative w-12 h-7 bg-emerald-500 rounded-full transition-all shadow-lg group" title="Toggle system">
+       <div class="absolute inset-0 flex items-center px-1">
+        <div id="toggle-circle" class="w-6 h-6 bg-white rounded-full shadow-lg transform transition-transform group-hover:scale-110"></div>
+       </div></button>
+      <div id="sync-status" class="flex items-center gap-2 text-xs text-emerald-400">
+       <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div><span id="status-text">เชื่อมต่อแล้ว</span>
+      </div>
+     </div>
+    </div>
+   </header><!-- Main Content -->
+   <main id="main-content" class="flex-1 overflow-y-auto"><!-- Home Tab -->
+    <div id="tab-home" class="tab-content p-4 max-w-lg mx-auto"><!-- Summary Cards -->
+     <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="stat-card bg-gradient-to-br from-blue-500/20 to-blue-600/10 rounded-2xl p-3 border border-blue-500/30">
+       <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg><span class="text-xs text-blue-300">วันนี้</span>
+       </div>
+       <p id="today-total" class="text-lg font-bold text-blue-400">฿0</p>
+      </div>
+      <div class="stat-card bg-gradient-to-br from-purple-500/20 to-purple-600/10 rounded-2xl p-3 border border-purple-500/30">
+       <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg><span class="text-xs text-purple-300">สัปดาห์</span>
+       </div>
+       <p id="week-total" class="text-lg font-bold text-purple-400">฿0</p>
+      </div>
+      <div class="stat-card bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 rounded-2xl p-3 border border-emerald-500/30">
+       <div class="flex items-center gap-2 mb-1">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg><span class="text-xs text-emerald-300">เดือนนี้</span>
+       </div>
+       <p id="month-total" class="text-lg font-bold text-emerald-400">฿0</p>
+      </div>
+     </div><!-- Income Form -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 mb-5 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+       <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+       </svg> บันทึกรายได้ใหม่</h2><!-- Amount Input -->
+      <div class="mb-4"><label for="amount-input" class="block text-xs text-slate-400 mb-2">จำนวนเงิน (บาท)</label>
+       <div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-bold">฿</span> <input type="number" id="amount-input" placeholder="0.00" class="w-full bg-slate-700/50 border border-slate-600 rounded-xl py-3 pl-10 pr-4 text-xl font-bold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
+       </div>
+      </div><!-- Category Selection -->
+      <div class="mb-4"><label class="block text-xs text-slate-400 mb-2">หมวดหมู่</label>
+       <div id="category-grid" class="grid grid-cols-4 gap-2"><button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="salary"> <span class="text-2xl mb-1">💼</span> <span class="text-xs text-slate-300">เงินเดือน</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="freelance"> <span class="text-2xl mb-1">💻</span> <span class="text-xs text-slate-300">ฟรีแลนซ์</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="investment"> <span class="text-2xl mb-1">📈</span> <span class="text-xs text-slate-300">ลงทุน</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="bonus"> <span class="text-2xl mb-1">🎁</span> <span class="text-xs text-slate-300">โบนัส</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="sales"> <span class="text-2xl mb-1">🛒</span> <span class="text-xs text-slate-300">ขายของ</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="rental"> <span class="text-2xl mb-1">🏠</span> <span class="text-xs text-slate-300">ค่าเช่า</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="gift"> <span class="text-2xl mb-1">🎀</span> <span class="text-xs text-slate-300">ของขวัญ</span> </button> <button type="button" class="category-btn flex flex-col items-center p-3 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-emerald-500 transition-all" data-category="other"> <span class="text-2xl mb-1">✨</span> <span class="text-xs text-slate-300">อื่นๆ</span> </button>
+       </div>
+      </div><!-- Description -->
+      <div class="mb-4"><label for="description-input" class="block text-xs text-slate-400 mb-2">รายละเอียด (ไม่บังคับ)</label> <input type="text" id="description-input" placeholder="เช่น เงินค่าจ้างโปรเจค..." class="w-full bg-slate-700/50 border border-slate-600 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
+      </div><!-- Submit Button --> <button type="button" id="submit-btn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-emerald-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+       </svg> บันทึกรายได้ </button>
+     </div><!-- History Section -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+      <div class="flex items-center justify-between mb-3">
+       <h2 class="text-sm font-semibold text-slate-300 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg> ประวัติการบันทึก</h2><select id="filter-select" class="bg-slate-700/50 border border-slate-600 rounded-lg py-1 px-3 text-xs text-slate-300 focus:outline-none focus:border-emerald-500"> <option value="today">วันนี้</option> <option value="week">สัปดาห์นี้</option> <option value="month" selected>เดือนนี้</option> <option value="all">ทั้งหมด</option> </select>
+      </div>
+      <div id="history-list" class="space-y-2 max-h-64 overflow-y-auto">
+       <div class="text-center text-slate-500 py-8">
+        <svg class="w-12 h-12 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-sm">ยังไม่มีข้อมูล</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Charts Tab -->
+    <div id="tab-charts" class="tab-content p-4 max-w-lg mx-auto hidden"><!-- 7 Days Bar Chart -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 mb-5 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+       <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+       </svg> รายได้ 7 วันที่ผ่านมา</h2>
+      <div class="h-48">
+       <canvas id="weekly-chart"></canvas>
+      </div>
+     </div><!-- Category Doughnut Chart -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 mb-5 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+       <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+       </svg> สัดส่วนรายได้ตามหมวดหมู่</h2>
+      <div class="h-48">
+       <canvas id="category-chart"></canvas>
+      </div>
+     </div><!-- Category Details -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+       <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+       </svg> รา��ละเอียดแต่ละหมวดหมู่</h2>
+      <div id="category-details" class="space-y-2">
+       <div class="text-center text-slate-500 py-4">
+        <p class="text-sm">ยังไม่มีข้อมูล</p>
+       </div>
+      </div>
+     </div>
+    </div><!-- Settings Tab -->
+    <div id="tab-settings" class="tab-content p-4 max-w-lg mx-auto hidden"><!-- App Settings -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 mb-5 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+       <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+       </svg> ตั้งค่าทั่วไป</h2>
+      <div class="space-y-4">
+       <div><label for="app-name-input" class="block text-xs text-slate-400 mb-2">ชื่อแอป</label> <input type="text" id="app-name-input" placeholder="Income Tracker Pro" class="w-full bg-slate-700/50 border border-slate-600 rounded-xl py-3 px-4 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
+       </div><button type="button" id="save-settings-btn" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+        </svg> บันทึกการตั้งค่า </button>
+      </div>
+     </div><!-- Data Management -->
+     <div class="bg-slate-800/60 rounded-2xl p-4 mb-5 border border-slate-700">
+      <h2 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+       <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+       </svg> จัดการข้อมูล</h2>
+      <div class="space-y-3">
+       <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-xl">
+        <div>
+         <p class="text-sm text-white">จำนวนรายการทั้งหมด</p>
+         <p id="total-records" class="text-xs text-slate-400">0 รายการ</p>
+        </div>
+        <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+         </svg>
+        </div>
+       </div><button type="button" id="export-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg> ส่งข้อมูลไป Google Sheets </button>
+      </div>
+     </div><!-- Danger Zone -->
+     <div class="bg-red-900/20 rounded-2xl p-4 border border-red-800/50">
+      <h2 class="text-sm font-semibold text-red-400 mb-4 flex items-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+       </svg> โซนอันตราย</h2>
+      <div id="delete-section">
+       <p class="text-xs text-red-300/70 mb-3">การลบข้อมูลจะไม่สามารถกู้คืนได้</p><button type="button" id="delete-all-btn" class="w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg> ลบข้อมูลทั้งหมด </button>
+      </div>
+      <div id="confirm-delete-section" class="hidden">
+       <p class="text-xs text-red-300 mb-3">คุณแน่ใจหรือไม่? พิมพ์ "DELETE" เพื่อยืนยัน</p><input type="text" id="confirm-delete-input" placeholder="พิมพ์ &quot;DELETE&quot;" class="w-full bg-red-900/30 border border-red-700 rounded-xl py-2 px-4 text-white placeholder-red-400/50 focus:outline-none focus:border-red-500 mb-3">
+       <div class="flex gap-2"><button type="button" id="cancel-delete-btn" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-xl transition-all"> ยกเลิก </button> <button type="button" id="confirm-delete-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled> ยืนยันลบ </button>
+       </div>
+      </div>
+     </div><!-- App Info -->
+     <div class="mt-5 text-center text-slate-500 text-xs">
+      <p>Income Tracker Pro V.3.0</p>
+      <p>© 2025 Powered by Canva Code</p>
+     </div>
+    </div>
+   </main><!-- Bottom Navigation -->
+   <nav class="bg-slate-800/90 backdrop-blur-lg border-t border-slate-700 flex-shrink-0">
+    <div class="max-w-lg mx-auto flex"><button type="button" class="nav-btn flex-1 py-3 flex flex-col items-center gap-1 transition-all tab-active" data-tab="home">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg><span class="text-xs">หน้าหลัก</span> </button> <button type="button" class="nav-btn flex-1 py-3 flex flex-col items-center gap-1 text-slate-400 hover:text-slate-300 transition-all" data-tab="charts">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg><span class="text-xs">กราฟสถิติ</span> </button> <button type="button" class="nav-btn flex-1 py-3 flex flex-col items-center gap-1 text-slate-400 hover:text-slate-300 transition-all" data-tab="settings">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg><span class="text-xs">ตั้งค่า</span> </button>
+    </div>
+   </nav>
+  </div>
+  <script>
+    // App State
+    let incomeData = [];
+    let selectedCategory = null;
+    let weeklyChart = null;
+    let categoryChart = null;
+    let systemEnabled = true;
+
+    // Default Config
+    const defaultConfig = {
+      app_title: 'Income Tracker Pro',
+      primary_color: '#10b981',
+      background_color: '#1e293b',
+      text_color: '#ffffff',
+      accent_color: '#6366f1'
+    };
+
+    // Google Apps Script URL for JSONP
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzBVn_FUvq3pUM1gsCQP93Y4nkBkp-h8rZUkwX6Vt1IHAdx3AFzK27M3kSdZjKdcXnxBA/exec';
+
+    // Categories Config
+    const categories = {
+      salary: { name: 'เงินเดือน', emoji: '💼', color: '#3b82f6' },
+      freelance: { name: 'ฟรีแลนซ์', emoji: '💻', color: '#8b5cf6' },
+      investment: { name: 'ลงทุน', emoji: '📈', color: '#10b981' },
+      bonus: { name: 'โบนัส', emoji: '🎁', color: '#f59e0b' },
+      sales: { name: '��ายของ', emoji: '🛒', color: '#ec4899' },
+      rental: { name: 'ค่าเช่า', emoji: '🏠', color: '#06b6d4' },
+      gift: { name: 'ของขวัญ', emoji: '🎀', color: '#f43f5e' },
+      other: { name: 'อื่นๆ', emoji: '✨', color: '#64748b' }
+    };
+
+    // JSONP Function for sending data to Google Sheets
+    function sendToGoogleSheets(data) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'jsonpCallback_' + Date.now();
+        const timeout = setTimeout(() => {
+          cleanup();
+          reject(new Error('Request timeout'));
+        }, 30000);
+
+        window[callbackName] = (response) => {
+          cleanup();
+          if (response && response.success) {
+            resolve(response);
+          } else {
+            reject(new Error(response?.message || 'Unknown error'));
+          }
+        };
+
+        function cleanup() {
+          clearTimeout(timeout);
+          delete window[callbackName];
+          const script = document.getElementById(callbackName);
+          if (script) script.remove();
+        }
+
+        const script = document.createElement('script');
+        script.id = callbackName;
+        
+        const params = new URLSearchParams({
+          callback: callbackName,
+          action: 'add',
+          data: JSON.stringify(data)
+        });
+        
+        script.src = `${APPS_SCRIPT_URL}?${params.toString()}`;
+        script.onerror = () => {
+          cleanup();
+          reject(new Error('Network error'));
+        };
+        
+        document.head.appendChild(script);
+      });
+    }
+
+    // Export all data to Google Sheets
+    async function exportToGoogleSheets() {
+      if (incomeData.length === 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'ไม่มีข้อมูล',
+          text: 'ยังไม่มีข้อมูลรายได้ที่จะส่ง',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#10b981'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: 'กำลังส่งข้อมูล...',
+        html: `<div class="flex flex-col items-center">
+          <div class="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p>กำลังส่งข้อมูล ${incomeData.length} รายการไปยัง Google Sheets</p>
+        </div>`,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        background: '#1e293b',
+        color: '#fff'
+      });
+
+      try {
+        const exportData = incomeData.map(item => ({
+          date: item.date,
+          amount: item.amount,
+          category: categories[item.category]?.name || item.category,
+          description: item.description || '-',
+          timestamp: item.timestamp
+        }));
+
+        await sendToGoogleSheets({
+          type: 'export',
+          records: exportData
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'ส่งข้อมูลสำเร็จ!',
+          text: `ส่งข้อมูล ${incomeData.length} รายการไป Google Sheets เรียบร้อยแล้ว`,
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#10b981'
+        });
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถส่งข้อมูลได้: ' + error.message,
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
+
+    // Format currency
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('th-TH', {
+        style: 'currency',
+        currency: 'THB',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    // Format date
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('th-TH', {
+        day: 'numeric',
+        month: 'short',
+        year: '2-digit'
+      });
+    }
+
+    // Get date range helpers
+    function isToday(dateStr) {
+      const date = new Date(dateStr);
+      const today = new Date();
+      return date.toDateString() === today.toDateString();
+    }
+
+    function isThisWeek(dateStr) {
+      const date = new Date(dateStr);
+      const today = new Date();
+      const weekStart = new Date(today);
+      weekStart.setDate(today.getDate() - today.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      return date >= weekStart;
+    }
+
+    function isThisMonth(dateStr) {
+      const date = new Date(dateStr);
+      const today = new Date();
+      return date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    }
+
+    // Calculate totals
+    function calculateTotals() {
+      const todayTotal = incomeData.filter(d => isToday(d.date)).reduce((sum, d) => sum + d.amount, 0);
+      const weekTotal = incomeData.filter(d => isThisWeek(d.date)).reduce((sum, d) => sum + d.amount, 0);
+      const monthTotal = incomeData.filter(d => isThisMonth(d.date)).reduce((sum, d) => sum + d.amount, 0);
+
+      document.getElementById('today-total').textContent = formatCurrency(todayTotal);
+      document.getElementById('week-total').textContent = formatCurrency(weekTotal);
+      document.getElementById('month-total').textContent = formatCurrency(monthTotal);
+    }
+
+    // Render history list
+    function renderHistory() {
+      const filter = document.getElementById('filter-select').value;
+      const container = document.getElementById('history-list');
+      
+      let filteredData = [...incomeData];
+      
+      if (filter === 'today') {
+        filteredData = filteredData.filter(d => isToday(d.date));
+      } else if (filter === 'week') {
+        filteredData = filteredData.filter(d => isThisWeek(d.date));
+      } else if (filter === 'month') {
+        filteredData = filteredData.filter(d => isThisMonth(d.date));
+      }
+
+      filteredData.sort((a, b) => b.timestamp - a.timestamp);
+
+      if (filteredData.length === 0) {
+        container.innerHTML = `
+          <div class="text-center text-slate-500 py-8">
+            <svg class="w-12 h-12 mx-auto mb-2 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-sm">ไม่มีข้อมูลในช่วงเวลานี้</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredData.map(item => {
+        const cat = categories[item.category] || categories.other;
+        return `
+          <div class="income-card flex items-center justify-between p-3 bg-slate-700/30 rounded-xl hover:bg-slate-700/50 transition-all" data-id="${item.__backendId}">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background: ${cat.color}20">
+                ${cat.emoji}
+              </div>
+              <div>
+                <p class="text-sm font-medium text-white">${cat.name}</p>
+                <p class="text-xs text-slate-400">${item.description || formatDate(item.date)}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-emerald-400">+${formatCurrency(item.amount)}</span>
+              <button type="button" class="delete-btn p-1 text-slate-500 hover:text-red-400 transition-colors" data-id="${item.__backendId}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add delete listeners
+      container.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.id;
+          const item = incomeData.find(d => d.__backendId === id);
+          if (item) {
+            const result = await Swal.fire({
+              title: 'ยืนยันการลบ?',
+              text: `ลบรายได้ ${formatCurrency(item.amount)} หรือไม่?`,
+              icon: 'warning',
+              showCancelButton: true,
+              confirmButtonColor: '#ef4444',
+              cancelButtonColor: '#64748b',
+              confirmButtonText: 'ลบ���ลย',
+              cancelButtonText: 'ยกเลิก',
+              background: '#1e293b',
+              color: '#fff'
+            });
+
+            if (result.isConfirmed) {
+              Swal.fire({
+                title: 'กำลังลบ...',
+                showConfirmButton: false,
+                allowOutsideClick: false,
+                background: '#1e293b',
+                color: '#fff',
+                didOpen: () => Swal.showLoading()
+              });
+
+              const deleteResult = await window.dataSdk.delete(item);
+              if (deleteResult.isOk) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'ลบสำเร็จ!',
+                  timer: 1500,
+                  showConfirmButton: false,
+                  background: '#1e293b',
+                  color: '#fff'
+                });
+              } else {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'เกิดข้อผิดพลาด',
+                  text: 'ไม่สามารถลบข้อมูลได้',
+                  background: '#1e293b',
+                  color: '#fff'
+                });
+              }
+            }
+          }
+        });
+      });
+    }
+
+    // Update Charts
+    function updateCharts() {
+      // Weekly Chart Data
+      const last7Days = [];
+      const labels = [];
+      const today = new Date();
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        last7Days.push(dateStr);
+        labels.push(date.toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric' }));
+      }
+
+      const dailyTotals = last7Days.map(day => {
+        return incomeData
+          .filter(d => d.date === day)
+          .reduce((sum, d) => sum + d.amount, 0);
+      });
+
+      // Update Weekly Chart
+      if (weeklyChart) {
+        weeklyChart.data.labels = labels;
+        weeklyChart.data.datasets[0].data = dailyTotals;
+        weeklyChart.update();
+      } else {
+        const ctx1 = document.getElementById('weekly-chart').getContext('2d');
+        weeklyChart = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'รายได้',
+              data: dailyTotals,
+              backgroundColor: 'rgba(16, 185, 129, 0.6)',
+              borderColor: 'rgba(16, 185, 129, 1)',
+              borderWidth: 2,
+              borderRadius: 8,
+              borderSkipped: false
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                ticks: { color: '#94a3b8' }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8' }
+              }
+            }
+          }
+        });
+      }
+
+      // Category Chart Data
+      const categoryTotals = {};
+      incomeData.forEach(item => {
+        const cat = item.category;
+        categoryTotals[cat] = (categoryTotals[cat] || 0) + item.amount;
+      });
+
+      const catLabels = Object.keys(categoryTotals).map(k => categories[k]?.name || k);
+      const catData = Object.values(categoryTotals);
+      const catColors = Object.keys(categoryTotals).map(k => categories[k]?.color || '#64748b');
+
+      // Update Category Chart
+      if (categoryChart) {
+        categoryChart.data.labels = catLabels;
+        categoryChart.data.datasets[0].data = catData;
+        categoryChart.data.datasets[0].backgroundColor = catColors;
+        categoryChart.update();
+      } else {
+        const ctx2 = document.getElementById('category-chart').getContext('2d');
+        categoryChart = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: catLabels,
+            datasets: [{
+              data: catData,
+              backgroundColor: catColors,
+              borderColor: '#1e293b',
+              borderWidth: 3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { color: '#94a3b8', padding: 10, font: { size: 11 } }
+              }
+            }
+          }
+        });
+      }
+
+      // Category Details
+      const detailsContainer = document.getElementById('category-details');
+      const total = catData.reduce((a, b) => a + b, 0);
+      
+      if (total === 0) {
+        detailsContainer.innerHTML = `
+          <div class="text-center text-slate-500 py-4">
+            <p class="text-sm">ยังไม่มีข้อมูล</p>
+          </div>
+        `;
+        return;
+      }
+
+      const sortedCategories = Object.entries(categoryTotals)
+        .sort((a, b) => b[1] - a[1]);
+
+      detailsContainer.innerHTML = sortedCategories.map(([key, value]) => {
+        const cat = categories[key] || categories.other;
+        const percent = ((value / total) * 100).toFixed(1);
+        return `
+          <div class="flex items-center justify-between p-3 bg-slate-700/30 rounded-xl">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: ${cat.color}20">
+                ${cat.emoji}
+              </div>
+              <span class="text-sm text-white">${cat.name}</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-24 h-2 bg-slate-700 rounded-full overflow-hidden">
+                <div class="h-full rounded-full" style="width: ${percent}%; background: ${cat.color}"></div>
+              </div>
+              <span class="text-xs text-slate-400 w-12 text-right">${percent}%</span>
+              <span class="text-sm font-bold text-white w-20 text-right">${formatCurrency(value)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Tab Navigation
+    function initTabs() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tab = btn.dataset.tab;
+          
+          // Update nav buttons
+          document.querySelectorAll('.nav-btn').forEach(b => {
+            b.classList.remove('tab-active');
+            b.classList.add('text-slate-400');
+          });
+          btn.classList.add('tab-active');
+          btn.classList.remove('text-slate-400');
+
+          // Update tab content
+          document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+          });
+          document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+          // Update charts when switching to charts tab
+          if (tab === 'charts') {
+            setTimeout(updateCharts, 100);
+          }
+        });
+      });
+    }
+
+    // Category Selection
+    function initCategorySelection() {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('selected', 'border-emerald-500');
+            b.classList.add('border-slate-600');
+          });
+          btn.classList.add('selected', 'border-emerald-500');
+          btn.classList.remove('border-slate-600');
+          selectedCategory = btn.dataset.category;
+        });
+      });
+    }
+
+    // Submit Income
+    async function submitIncome() {
+      if (!systemEnabled) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ระบบปิดอยู่',
+          text: 'กรุณาเปิดระบบก่อนบันทึกรายได้',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#ef4444'
+        });
+        return;
+      }
+
+      const amountInput = document.getElementById('amount-input');
+      const descInput = document.getElementById('description-input');
+      const amount = parseFloat(amountInput.value);
+
+      if (!amount || amount <= 0) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณ���ระบุจำนวนเงิน',
+          text: 'จำนวนเงินต้องมากกว่า 0',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#f59e0b'
+        });
+        return;
+      }
+
+      if (!selectedCategory) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'กรุณาเลือกหมวดหมู่',
+          text: 'เลือกหมวดหมู่รายได้ของคุณ',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#f59e0b'
+        });
+        return;
+      }
+
+      if (incomeData.length >= 999) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกินขีดจำกัด',
+          text: 'ไม่สามารถเพิ่มข้���มูลได้เกิน 999 รายการ กรุณาลบข้อมูลเก่าก่อน',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#ef4444'
+        });
+        return;
+      }
+
+      // Show loading
+      Swal.fire({
+        title: 'กำลังบันทึก...',
+        html: `
+          <div class="flex flex-col items-center">
+            <div class="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-emerald-400">กำลังบันทึกรายได้ของคุณ</p>
+          </div>
+        `,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        background: '#1e293b',
+        color: '#fff'
+      });
+
+      const newRecord = {
+        amount: amount,
+        category: selectedCategory,
+        description: descInput.value.trim(),
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now()
+      };
+
+      try {
+        // Save to local Data SDK
+        const result = await window.dataSdk.create(newRecord);
+
+        if (result.isOk) {
+          // Also try to send to Google Sheets via JSONP
+          try {
+            await sendToGoogleSheets({
+              type: 'single',
+              record: {
+                date: newRecord.date,
+                amount: newRecord.amount,
+                category: categories[newRecord.category]?.name || newRecord.category,
+                description: newRecord.description || '-',
+                timestamp: newRecord.timestamp
+              }
+            });
+          } catch (gsError) {
+            console.log('Google Sheets sync pending:', gsError.message);
+          }
+
+          Swal.fire({
+            icon: 'success',
+            title: 'บันทึกสำเร็จ! 🎉',
+            html: `
+              <div class="text-center">
+                <p class="text-2xl font-bold text-emerald-400 mb-2">+${formatCurrency(amount)}</p>
+                <p class="text-slate-400">${categories[selectedCategory]?.name || selectedCategory}</p>
+              </div>
+            `,
+            timer: 2000,
+            showConfirmButton: false,
+            background: '#1e293b',
+            color: '#fff'
+          });
+
+          // Reset form
+          amountInput.value = '';
+          descInput.value = '';
+          selectedCategory = null;
+          document.querySelectorAll('.category-btn').forEach(b => {
+            b.classList.remove('selected', 'border-emerald-500');
+            b.classList.add('border-slate-600');
+          });
+        } else {
+          throw new Error('Failed to save');
+        }
+      } catch (error) {
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
+
+    // Delete All Data
+    function initDeleteAll() {
+      const deleteBtn = document.getElementById('delete-all-btn');
+      const deleteSection = document.getElementById('delete-section');
+      const confirmSection = document.getElementById('confirm-delete-section');
+      const cancelBtn = document.getElementById('cancel-delete-btn');
+      const confirmBtn = document.getElementById('confirm-delete-btn');
+      const confirmInput = document.getElementById('confirm-delete-input');
+
+      deleteBtn.addEventListener('click', () => {
+        deleteSection.classList.add('hidden');
+        confirmSection.classList.remove('hidden');
+        confirmInput.value = '';
+        confirmBtn.disabled = true;
+      });
+
+      cancelBtn.addEventListener('click', () => {
+        confirmSection.classList.add('hidden');
+        deleteSection.classList.remove('hidden');
+      });
+
+      confirmInput.addEventListener('input', () => {
+        confirmBtn.disabled = confirmInput.value !== 'DELETE';
+      });
+
+      confirmBtn.addEventListener('click', async () => {
+        if (confirmInput.value !== 'DELETE') return;
+
+        Swal.fire({
+          title: 'กำลังลบข้อมูล...',
+          showConfirmButton: false,
+          allowOutsideClick: false,
+          background: '#1e293b',
+          color: '#fff',
+          didOpen: () => Swal.showLoading()
+        });
+
+        let deleted = 0;
+        const total = incomeData.length;
+
+        for (const item of [...incomeData]) {
+          const result = await window.dataSdk.delete(item);
+          if (result.isOk) deleted++;
+        }
+
+        confirmSection.classList.add('hidden');
+        deleteSection.classList.remove('hidden');
+        confirmInput.value = '';
+
+        Swal.fire({
+          icon: 'success',
+          title: 'ลบข้อมูลสำเร็จ!',
+          text: `ลบข้อมูล ${deleted}/${total} รายการแล้ว`,
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: '#10b981'
+        });
+      });
+    }
+
+    // Settings
+    function initSettings() {
+      const appNameInput = document.getElementById('app-name-input');
+      const saveBtn = document.getElementById('save-settings-btn');
+      const exportBtn = document.getElementById('export-btn');
+
+      appNameInput.value = defaultConfig.app_title;
+
+      saveBtn.addEventListener('click', async () => {
+        const newTitle = appNameInput.value.trim() || 'Income Tracker Pro';
+        document.getElementById('app-title').textContent = newTitle;
+        
+        if (window.elementSdk) {
+          await window.elementSdk.setConfig({ app_title: newTitle });
+        }
+
+        Swal.fire({
+          icon: 'success',
+          title: 'บันทึกการตั้งค่าแล้ว!',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#1e293b',
+          color: '#fff'
+        });
+      });
+
+      exportBtn.addEventListener('click', exportToGoogleSheets);
+    }
+
+    // Data Handler
+    const dataHandler = {
+      onDataChanged(data) {
+        incomeData = data;
+        calculateTotals();
+        renderHistory();
+        document.getElementById('total-records').textContent = `${data.length} รายการ`;
+        
+        // Update charts if visible
+        if (!document.getElementById('tab-charts').classList.contains('hidden')) {
+          updateCharts();
+        }
+      }
+    };
+
+    // Element SDK Handler
+    async function onConfigChange(config) {
+      const title = config.app_title || defaultConfig.app_title;
+      document.getElementById('app-title').textContent = title;
+      document.getElementById('app-name-input').value = title;
+    }
+
+    // Initialize App
+    async function init() {
+      // Initialize toggle button
+      const toggleBtn = document.getElementById('system-toggle');
+      const toggleCircle = document.getElementById('toggle-circle');
+      const statusText = document.getElementById('status-text');
+      const submitBtn = document.getElementById('submit-btn');
+      const amountInput = document.getElementById('amount-input');
+      const descInput = document.getElementById('description-input');
+      const categoryBtns = document.querySelectorAll('.category-btn');
+
+      function updateSystemUI() {
+        if (systemEnabled) {
+          toggleBtn.classList.add('bg-emerald-500');
+          toggleBtn.classList.remove('bg-red-600');
+          toggleCircle.classList.add('translate-x-5');
+          toggleCircle.classList.remove('translate-x-0');
+          statusText.textContent = 'เชื่อมต่อแล้ว';
+          
+          // Enable inputs
+          submitBtn.disabled = false;
+          amountInput.disabled = false;
+          descInput.disabled = false;
+          categoryBtns.forEach(btn => btn.disabled = false);
+          
+          // Remove opacity
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+          amountInput.classList.remove('opacity-50', 'cursor-not-allowed');
+          descInput.classList.remove('opacity-50', 'cursor-not-allowed');
+          categoryBtns.forEach(btn => btn.classList.remove('opacity-50', 'cursor-not-allowed'));
+        } else {
+          toggleBtn.classList.remove('bg-emerald-500');
+          toggleBtn.classList.add('bg-red-600');
+          toggleCircle.classList.remove('translate-x-5');
+          toggleCircle.classList.add('translate-x-0');
+          statusText.textContent = 'ระบบปิด';
+          
+          // Disable inputs
+          submitBtn.disabled = true;
+          amountInput.disabled = true;
+          descInput.disabled = true;
+          categoryBtns.forEach(btn => btn.disabled = true);
+          
+          // Add opacity
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          amountInput.classList.add('opacity-50', 'cursor-not-allowed');
+          descInput.classList.add('opacity-50', 'cursor-not-allowed');
+          categoryBtns.forEach(btn => btn.classList.add('opacity-50', 'cursor-not-allowed'));
+        }
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        systemEnabled = !systemEnabled;
+        updateSystemUI();
+        
+        Swal.fire({
+          icon: systemEnabled ? 'success' : 'warning',
+          title: systemEnabled ? 'ระบบเปิดแล้ว ✓' : 'ระบบปิดแล้ว ✕',
+          text: systemEnabled ? 'ระบบพร้อมใช้งาน' : 'ระบบปิดอยู่ ไม่สามารถบันทึกข้อมูลได้',
+          background: '#1e293b',
+          color: '#fff',
+          confirmButtonColor: systemEnabled ? '#10b981' : '#ef4444',
+          timer: 1500,
+          showConfirmButton: false
+        });
+      });
+
+      // Initial UI update
+      updateSystemUI();
+      // Initialize Data SDK
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error('Failed to initialize Data SDK');
+        }
+      }
+
+      // Initialize Element SDK
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities: (config) => ({
+            recolorables: [],
+            borderables: [],
+            fontEditable: undefined,
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (config) => new Map([
+            ['app_title', config.app_title || defaultConfig.app_title]
+          ])
+        });
+      }
+
+      // Initialize UI
+      initTabs();
+      initCategorySelection();
+      initDeleteAll();
+      initSettings();
+
+      // Submit button
+      document.getElementById('submit-btn').addEventListener('click', submitIncome);
+
+      // Filter change
+      document.getElementById('filter-select').addEventListener('change', renderHistory);
+
+      // Enter key for amount
+      document.getElementById('amount-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') submitIncome();
+      });
+    }
+
+    // Start app
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c7ab6b2f4114f5d',t:'MTc3MDA0NjA1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>    .stat-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
     }
